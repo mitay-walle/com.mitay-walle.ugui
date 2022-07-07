@@ -1,5 +1,5 @@
 # Unity UI Optimized
-The Unity UI package allows you to create in-game user interfaces fast and intuitively.
+Rewritten Unity UI package (also known as uGUI) to make it more performant
 
 ## Changes
 - RectMask2D Culling & Softness is disabled
