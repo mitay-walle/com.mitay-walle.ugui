@@ -3,7 +3,7 @@ using UnityEngine.UI;
 
 namespace UnityEditor.UI
 {
-    [CustomEditor(typeof(RectMask2D), true)]
+    //[CustomEditor(typeof(RectMask2D), true)]
     [CanEditMultipleObjects]
     /// <summary>
     /// Custom editor for the RectMask2d component.

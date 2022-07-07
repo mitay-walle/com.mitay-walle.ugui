@@ -48,7 +48,12 @@ namespace UnityEngine.UI
 
         [SerializeField]
         private Vector4 m_Padding = new Vector4();
-
+        
+        [SerializeField]
+        private bool UseCulling;
+        [SerializeField]
+        private bool UseSoftness;
+        
         /// <summary>
         /// Padding to be applied to the masking
         /// X = Left
@@ -244,7 +249,7 @@ namespace UnityEngine.UI
                 foreach (MaskableGraphic maskableTarget in m_MaskableTargets)
                 {
                     maskableTarget.SetClipRect(clipRect, validRect);
-                    maskableTarget.Cull(clipRect, validRect);
+                    if (UseCulling) maskableTarget.Cull(clipRect, validRect);
                 }
             }
             else if (m_ForceClip)
@@ -258,23 +263,28 @@ namespace UnityEngine.UI
                 {
                     maskableTarget.SetClipRect(clipRect, validRect);
 
-                    if (maskableTarget.canvasRenderer.hasMoved)
+                    if (maskableTarget.canvasRenderer.hasMoved && UseCulling)
+                    {
                         maskableTarget.Cull(clipRect, validRect);
+                    }
                 }
             }
             else
             {
-                foreach (MaskableGraphic maskableTarget in m_MaskableTargets)
+                if (UseCulling)
                 {
-                    //Case 1170399 - hasMoved is not a valid check when animating on pivot of the object
-                    maskableTarget.Cull(clipRect, validRect);
+                    foreach (MaskableGraphic maskableTarget in m_MaskableTargets)
+                    {
+                        //Case 1170399 - hasMoved is not a valid check when animating on pivot of the object
+                        maskableTarget.Cull(clipRect, validRect);
+                    }    
                 }
             }
 
             m_LastClipRectCanvasSpace = clipRect;
             m_ForceClip = false;
 
-            UpdateClipSoftness();
+            if (UseSoftness) UpdateClipSoftness();
         }
 
         public virtual void UpdateClipSoftness()
