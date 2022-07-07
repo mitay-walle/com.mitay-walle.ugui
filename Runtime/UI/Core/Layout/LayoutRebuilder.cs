@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using External;
 using UnityEngine.Events;
 using UnityEngine.Pool;
 
@@ -18,7 +19,7 @@ namespace UnityEngine.UI
         // So this struct gets used as a key to a dictionary, so we need to guarantee a constant Hash value.
         private int m_CachedHashFromTransform;
 
-        static ObjectPool<LayoutRebuilder> s_Rebuilders = new ObjectPool<LayoutRebuilder>(() => new LayoutRebuilder(), null, x => x.Clear());
+        static ObjectPoolOptimized<LayoutRebuilder> s_Rebuilders = new ObjectPoolOptimized<LayoutRebuilder>(() => new LayoutRebuilder(), null, x => x.Clear());
 
         private void Initialize(RectTransform controller)
         {
