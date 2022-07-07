@@ -170,13 +170,14 @@ namespace UnityEngine.UI
             {
                 if (value != m_RaycastTarget)
                 {
+                    Canvas canvasCached = canvas;
                     if (m_RaycastTarget)
-                        GraphicRegistry.UnregisterRaycastGraphicForCanvas(canvas, this);
+                        GraphicRegistry.UnregisterRaycastGraphicForCanvas(canvasCached, this);
 
                     m_RaycastTarget = value;
 
                     if (m_RaycastTarget && isActiveAndEnabled)
-                        GraphicRegistry.RegisterRaycastGraphicForCanvas(canvas, this);
+                        GraphicRegistry.RegisterRaycastGraphicForCanvas(canvasCached, this);
                 }
             }
         }
@@ -355,7 +356,7 @@ namespace UnityEngine.UI
         /// Absolute depth of the graphic, used by rendering and events -- lowest to highest.
         /// </summary>
         /// <example>
-        /// The depth is relative to the first root canvas.
+        /// The depth is relative to the first root canvasCached.
         ///
         /// Canvas
         ///  Graphic - 1
@@ -408,7 +409,7 @@ namespace UnityEngine.UI
             gameObject.GetComponentsInParent(false, list);
             if (list.Count > 0)
             {
-                // Find the first active and enabled canvas.
+                // Find the first active and enabled canvasCached.
                 for (int i = 0; i < list.Count; ++i)
                 {
                     if (list[i].isActiveAndEnabled)
@@ -417,7 +418,7 @@ namespace UnityEngine.UI
                         break;
                     }
 
-                    // if we reached the end and couldn't find an active and enabled canvas, we should return null . case 1171433
+                    // if we reached the end and couldn't find an active and enabled canvasCached, we should return null . case 1171433
                     if (i == list.Count - 1)
                         m_Canvas = null;
                 }
@@ -519,7 +520,7 @@ namespace UnityEngine.UI
         }
 
         /// <summary>
-        /// Mark the Graphic and the canvas as having been changed.
+        /// Mark the Graphic and the canvasCached as having been changed.
         /// </summary>
         protected override void OnEnable()
         {
@@ -569,7 +570,7 @@ namespace UnityEngine.UI
             // Use m_Cavas so we dont auto call CacheCanvas
             Canvas currentCanvas = m_Canvas;
 
-            // Clear the cached canvas. Will be fetched below if active.
+            // Clear the cached canvasCached. Will be fetched below if active.
             m_Canvas = null;
 
             if (!IsActive())
@@ -608,7 +609,7 @@ namespace UnityEngine.UI
         /// </summary>
         /// <param name="update">The current step of the rendering CanvasUpdate cycle.</param>
         /// <remarks>
-        /// See CanvasUpdateRegistry for more details on the canvas update cycle.
+        /// See CanvasUpdateRegistry for more details on the canvasCached update cycle.
         /// </remarks>
         public virtual void Rebuild(CanvasUpdate update)
         {
@@ -668,7 +669,10 @@ namespace UnityEngine.UI
 
         private void DoMeshGeneration()
         {
-            if (rectTransform != null && rectTransform.rect.width >= 0 && rectTransform.rect.height >= 0)
+            var rectTransformCached = rectTransform;
+            var rect = rectTransformCached ? rectTransformCached.rect : default;
+            
+            if (rectTransformCached != null && rect.width >= 0 && rect.height >= 0)
                 OnPopulateMesh(s_VertexHelper);
             else
                 s_VertexHelper.Clear(); // clear the vertex helper so invalid graphics dont draw.
@@ -687,7 +691,10 @@ namespace UnityEngine.UI
 
         private void DoLegacyMeshGeneration()
         {
-            if (rectTransform != null && rectTransform.rect.width >= 0 && rectTransform.rect.height >= 0)
+            var rectTransformCached = rectTransform;
+            var rect = rectTransformCached ? rectTransformCached.rect : default;
+            
+            if (rectTransformCached != null && rect.width >= 0 && rect.height >= 0)
             {
 #pragma warning disable 618
                 OnPopulateMesh(workerMesh);
@@ -831,8 +838,8 @@ namespace UnityEngine.UI
                 t.GetComponents(components);
                 for (var i = 0; i < components.Count; i++)
                 {
-                    var canvas = components[i] as Canvas;
-                    if (canvas != null && canvas.overrideSorting)
+                    var canvasCached = components[i] as Canvas;
+                    if (canvasCached != null && canvasCached.overrideSorting)
                         continueTraversal = false;
 
                     var filter = components[i] as ICanvasRaycastFilter;
@@ -889,11 +896,13 @@ namespace UnityEngine.UI
         ///</remarks>
         public Vector2 PixelAdjustPoint(Vector2 point)
         {
-            if (!canvas || canvas.renderMode == RenderMode.WorldSpace || canvas.scaleFactor == 0.0f || !canvas.pixelPerfect)
+            Canvas canvasCached = canvas;
+
+            if (!canvasCached || canvasCached.renderMode == RenderMode.WorldSpace || canvasCached.scaleFactor == 0.0f || !canvasCached.pixelPerfect)
                 return point;
             else
             {
-                return RectTransformUtility.PixelAdjustPoint(point, transform, canvas);
+                return RectTransformUtility.PixelAdjustPoint(point, transform, canvasCached);
             }
         }
 
@@ -906,10 +915,12 @@ namespace UnityEngine.UI
         /// <returns>A Pixel perfect Rect.</returns>
         public Rect GetPixelAdjustedRect()
         {
-            if (!canvas || canvas.renderMode == RenderMode.WorldSpace || canvas.scaleFactor == 0.0f || !canvas.pixelPerfect)
+            Canvas canvasCached = canvas;
+
+            if (!canvasCached || canvasCached.renderMode == RenderMode.WorldSpace || canvasCached.scaleFactor == 0.0f || !canvasCached.pixelPerfect)
                 return rectTransform.rect;
             else
-                return RectTransformUtility.PixelAdjustRect(rectTransform, canvas);
+                return RectTransformUtility.PixelAdjustRect(rectTransform, canvasCached);
         }
 
         ///<summary>

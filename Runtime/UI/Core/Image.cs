@@ -662,7 +662,9 @@ namespace UnityEngine.UI
         {
             get
             {
-                if (activeSprite == null)
+                Sprite activeSpriteCached = activeSprite;
+                
+                if (activeSpriteCached == null)
                 {
                     if (material != null && material.mainTexture != null)
                     {
@@ -671,7 +673,7 @@ namespace UnityEngine.UI
                     return s_WhiteTexture;
                 }
 
-                return activeSprite.texture;
+                return activeSpriteCached.texture;
             }
         }
 
@@ -683,9 +685,11 @@ namespace UnityEngine.UI
         {
             get
             {
-                if (activeSprite != null)
+                Sprite activeSpriteCached = activeSprite;
+                
+                if (activeSpriteCached != null)
                 {
-                    Vector4 v = activeSprite.border;
+                    Vector4 v = activeSpriteCached.border;
                     return v.sqrMagnitude > 0f;
                 }
                 return false;
@@ -717,11 +721,14 @@ namespace UnityEngine.UI
             get
             {
                 float spritePixelsPerUnit = 100;
-                if (activeSprite)
-                    spritePixelsPerUnit = activeSprite.pixelsPerUnit;
+                Sprite activeSpriteCached = activeSprite;
 
-                if (canvas)
-                    m_CachedReferencePixelsPerUnit = canvas.referencePixelsPerUnit;
+                if (activeSpriteCached)
+                    spritePixelsPerUnit = activeSpriteCached.pixelsPerUnit;
+
+                var canvasCached = canvas;
+                if (canvasCached)
+                    m_CachedReferencePixelsPerUnit = canvasCached.referencePixelsPerUnit;
 
                 return spritePixelsPerUnit / m_CachedReferencePixelsPerUnit;
             }
@@ -741,12 +748,16 @@ namespace UnityEngine.UI
             {
                 if (m_Material != null)
                     return m_Material;
+
+                Sprite activeSpriteCached = activeSprite;
+
 #if UNITY_EDITOR
-                if (Application.isPlaying && activeSprite && activeSprite.associatedAlphaSplitTexture != null)
+
+                if (Application.isPlaying && activeSpriteCached && activeSpriteCached.associatedAlphaSplitTexture != null)
                     return defaultETC1GraphicMaterial;
 #else
 
-                if (activeSprite && activeSprite.associatedAlphaSplitTexture != null)
+                if (activeSpriteCached && activeSpriteCached.associatedAlphaSplitTexture != null)
                     return defaultETC1GraphicMaterial;
 #endif
 
@@ -803,8 +814,10 @@ namespace UnityEngine.UI
         /// Image's dimensions used for drawing. X = left, Y = bottom, Z = right, W = top.
         private Vector4 GetDrawingDimensions(bool shouldPreserveAspect)
         {
-            var padding = activeSprite == null ? Vector4.zero : Sprites.DataUtility.GetPadding(activeSprite);
-            var size = activeSprite == null ? Vector2.zero : new Vector2(activeSprite.rect.width, activeSprite.rect.height);
+            Sprite activeSpriteCached = activeSprite;
+
+            var padding = activeSpriteCached == null ? Vector4.zero : Sprites.DataUtility.GetPadding(activeSpriteCached);
+            var size = activeSpriteCached == null ? Vector2.zero : new Vector2(activeSpriteCached.rect.width, activeSpriteCached.rect.height);
 
             Rect r = GetPixelAdjustedRect();
             // Debug.Log(string.Format("r:{2}, size:{0}, padding:{1}", size, padding, r));
@@ -841,10 +854,12 @@ namespace UnityEngine.UI
         /// </remarks>
         public override void SetNativeSize()
         {
-            if (activeSprite != null)
+            Sprite activeSpriteCached = activeSprite;
+
+            if (activeSpriteCached != null)
             {
-                float w = activeSprite.rect.width / pixelsPerUnit;
-                float h = activeSprite.rect.height / pixelsPerUnit;
+                float w = activeSpriteCached.rect.width / pixelsPerUnit;
+                float h = activeSpriteCached.rect.height / pixelsPerUnit;
                 rectTransform.anchorMax = rectTransform.anchorMin;
                 rectTransform.sizeDelta = new Vector2(w, h);
                 SetAllDirty();
@@ -856,7 +871,9 @@ namespace UnityEngine.UI
         /// </summary>
         protected override void OnPopulateMesh(VertexHelper toFill)
         {
-            if (activeSprite == null)
+            Sprite activeSpriteCached = activeSprite;
+
+            if (activeSpriteCached == null)
             {
                 base.OnPopulateMesh(toFill);
                 return;
@@ -884,7 +901,9 @@ namespace UnityEngine.UI
 
         private void TrackSprite()
         {
-            if (activeSprite != null && activeSprite.texture == null)
+            Sprite activeSpriteCached = activeSprite;
+
+            if (activeSpriteCached != null && activeSpriteCached.texture == null)
             {
                 TrackImage(this);
                 m_Tracked = true;
@@ -914,14 +933,15 @@ namespace UnityEngine.UI
             base.UpdateMaterial();
 
             // check if this sprite has an associated alpha texture (generated when splitting RGBA = RGB + A as two textures without alpha)
+            Sprite activeSpriteCached = activeSprite;
 
-            if (activeSprite == null)
+            if (activeSpriteCached == null)
             {
                 canvasRenderer.SetAlphaTexture(null);
                 return;
             }
 
-            Texture2D alphaTex = activeSprite.associatedAlphaSplitTexture;
+            Texture2D alphaTex = activeSpriteCached.associatedAlphaSplitTexture;
 
             if (alphaTex != null)
             {
@@ -931,14 +951,16 @@ namespace UnityEngine.UI
 
         protected override void OnCanvasHierarchyChanged()
         {
+            Canvas canvasCached = canvas;
+
             base.OnCanvasHierarchyChanged();
-            if (canvas == null)
+            if (canvasCached == null)
             {
                 m_CachedReferencePixelsPerUnit = 100;
             }
-            else if (canvas.referencePixelsPerUnit != m_CachedReferencePixelsPerUnit)
+            else if (canvasCached.referencePixelsPerUnit != m_CachedReferencePixelsPerUnit)
             {
-                m_CachedReferencePixelsPerUnit = canvas.referencePixelsPerUnit;
+                m_CachedReferencePixelsPerUnit = canvasCached.referencePixelsPerUnit;
                 if (type == Type.Sliced || type == Type.Tiled)
                 {
                     SetVerticesDirty();
@@ -953,7 +975,9 @@ namespace UnityEngine.UI
         void GenerateSimpleSprite(VertexHelper vh, bool lPreserveAspect)
         {
             Vector4 v = GetDrawingDimensions(lPreserveAspect);
-            var uv = (activeSprite != null) ? Sprites.DataUtility.GetOuterUV(activeSprite) : Vector4.zero;
+            Sprite activeSpriteCached = activeSprite;
+
+            var uv = (activeSpriteCached != null) ? Sprites.DataUtility.GetOuterUV(activeSpriteCached) : Vector4.zero;
 
             var color32 = color;
             vh.Clear();
@@ -968,10 +992,12 @@ namespace UnityEngine.UI
 
         private void GenerateSprite(VertexHelper vh, bool lPreserveAspect)
         {
-            var spriteSize = new Vector2(activeSprite.rect.width, activeSprite.rect.height);
+            Sprite activeSpriteCached = activeSprite;
+
+            var spriteSize = new Vector2(activeSpriteCached.rect.width, activeSpriteCached.rect.height);
 
             // Covert sprite pivot into normalized space.
-            var spritePivot = activeSprite.pivot / spriteSize;
+            var spritePivot = activeSpriteCached.pivot / spriteSize;
             var rectPivot = rectTransform.pivot;
             Rect r = GetPixelAdjustedRect();
 
@@ -981,7 +1007,7 @@ namespace UnityEngine.UI
             }
 
             var drawingSize = new Vector2(r.width, r.height);
-            var spriteBoundSize = activeSprite.bounds.size;
+            var spriteBoundSize = activeSpriteCached.bounds.size;
 
             // Calculate the drawing offset based on the difference between the two pivots.
             var drawOffset = (rectPivot - spritePivot) * drawingSize;
@@ -989,14 +1015,14 @@ namespace UnityEngine.UI
             var color32 = color;
             vh.Clear();
 
-            Vector2[] vertices = activeSprite.vertices;
-            Vector2[] uvs = activeSprite.uv;
+            Vector2[] vertices = activeSpriteCached.vertices;
+            Vector2[] uvs = activeSpriteCached.uv;
             for (int i = 0; i < vertices.Length; ++i)
             {
                 vh.AddVert(new Vector3((vertices[i].x / spriteBoundSize.x) * drawingSize.x - drawOffset.x, (vertices[i].y / spriteBoundSize.y) * drawingSize.y - drawOffset.y), color32, new Vector2(uvs[i].x, uvs[i].y));
             }
 
-            UInt16[] triangles = activeSprite.triangles;
+            UInt16[] triangles = activeSpriteCached.triangles;
             for (int i = 0; i < triangles.Length; i += 3)
             {
                 vh.AddTriangle(triangles[i + 0], triangles[i + 1], triangles[i + 2]);
@@ -1019,12 +1045,15 @@ namespace UnityEngine.UI
 
             Vector4 outer, inner, padding, border;
 
-            if (activeSprite != null)
+            Sprite activeSpriteCached = activeSprite;
+
+            
+            if (activeSpriteCached != null)
             {
-                outer = Sprites.DataUtility.GetOuterUV(activeSprite);
-                inner = Sprites.DataUtility.GetInnerUV(activeSprite);
-                padding = Sprites.DataUtility.GetPadding(activeSprite);
-                border = activeSprite.border;
+                outer = Sprites.DataUtility.GetOuterUV(activeSpriteCached);
+                inner = Sprites.DataUtility.GetInnerUV(activeSpriteCached);
+                padding = Sprites.DataUtility.GetPadding(activeSpriteCached);
+                border = activeSpriteCached.border;
             }
             else
             {
@@ -1091,13 +1120,14 @@ namespace UnityEngine.UI
         {
             Vector4 outer, inner, border;
             Vector2 spriteSize;
+            Sprite activeSpriteCached = activeSprite;
 
-            if (activeSprite != null)
+            if (activeSpriteCached != null)
             {
-                outer = Sprites.DataUtility.GetOuterUV(activeSprite);
-                inner = Sprites.DataUtility.GetInnerUV(activeSprite);
-                border = activeSprite.border;
-                spriteSize = activeSprite.rect.size;
+                outer = Sprites.DataUtility.GetOuterUV(activeSpriteCached);
+                inner = Sprites.DataUtility.GetInnerUV(activeSpriteCached);
+                border = activeSpriteCached.border;
+                spriteSize = activeSpriteCached.rect.size;
             }
             else
             {
@@ -1132,7 +1162,7 @@ namespace UnityEngine.UI
             if (tileHeight <= 0)
                 tileHeight = yMax - yMin;
 
-            if (activeSprite != null && (hasBorder || activeSprite.packed || activeSprite.texture.wrapMode != TextureWrapMode.Repeat))
+            if (activeSpriteCached != null && (hasBorder || activeSpriteCached.packed || activeSpriteCached.texture.wrapMode != TextureWrapMode.Repeat))
             {
                 // Sprite has border, or is not in repeat mode, or cannot be repeated because of packing.
                 // We cannot use texture tiling so we will generate a mesh of quads to tile the texture.
@@ -1401,7 +1431,9 @@ namespace UnityEngine.UI
                 return;
 
             Vector4 v = GetDrawingDimensions(preserveAspect);
-            Vector4 outer = activeSprite != null ? Sprites.DataUtility.GetOuterUV(activeSprite) : Vector4.zero;
+            Sprite activeSpriteCached = activeSprite;
+
+            Vector4 outer = activeSpriteCached != null ? Sprites.DataUtility.GetOuterUV(activeSpriteCached) : Vector4.zero;
             UIVertex uiv = UIVertex.simpleVert;
             uiv.color = color;
 
@@ -1724,11 +1756,20 @@ namespace UnityEngine.UI
         {
             get
             {
-                if (activeSprite == null)
+                Sprite activeSpriteCached = activeSprite;
+
+                if (activeSpriteCached == null)
+                {
                     return 0;
+                }
                 if (type == Type.Sliced || type == Type.Tiled)
-                    return Sprites.DataUtility.GetMinSize(activeSprite).x / pixelsPerUnit;
-                return activeSprite.rect.size.x / pixelsPerUnit;
+                {
+                    return Sprites.DataUtility.GetMinSize(activeSpriteCached).x / pixelsPerUnit;
+                }
+                else
+                {
+                    return activeSpriteCached.rect.size.x / pixelsPerUnit;
+                }
             }
         }
 
@@ -1750,11 +1791,13 @@ namespace UnityEngine.UI
         {
             get
             {
-                if (activeSprite == null)
+                Sprite activeSpriteCached = activeSprite;
+
+                if (activeSpriteCached == null)
                     return 0;
                 if (type == Type.Sliced || type == Type.Tiled)
-                    return Sprites.DataUtility.GetMinSize(activeSprite).y / pixelsPerUnit;
-                return activeSprite.rect.size.y / pixelsPerUnit;
+                    return Sprites.DataUtility.GetMinSize(activeSpriteCached).y / pixelsPerUnit;
+                return activeSpriteCached.rect.size.y / pixelsPerUnit;
             }
         }
 
@@ -1782,8 +1825,9 @@ namespace UnityEngine.UI
 
             if (alphaHitTestMinimumThreshold > 1)
                 return false;
+            Sprite activeSpriteCached = activeSprite;
 
-            if (activeSprite == null)
+            if (activeSpriteCached == null)
                 return true;
 
             Vector2 local;
@@ -1799,13 +1843,13 @@ namespace UnityEngine.UI
             local = MapCoordinate(local, rect);
 
             // Convert local coordinates to texture space.
-            Rect spriteRect = activeSprite.textureRect;
-            float x = (spriteRect.x + local.x) / activeSprite.texture.width;
-            float y = (spriteRect.y + local.y) / activeSprite.texture.height;
+            Rect spriteRect = activeSpriteCached.textureRect;
+            float x = (spriteRect.x + local.x) / activeSpriteCached.texture.width;
+            float y = (spriteRect.y + local.y) / activeSpriteCached.texture.height;
 
             try
             {
-                return activeSprite.texture.GetPixelBilinear(x, y).a >= alphaHitTestMinimumThreshold;
+                return activeSpriteCached.texture.GetPixelBilinear(x, y).a >= alphaHitTestMinimumThreshold;
             }
             catch (UnityException e)
             {
@@ -1816,11 +1860,13 @@ namespace UnityEngine.UI
 
         private Vector2 MapCoordinate(Vector2 local, Rect rect)
         {
-            Rect spriteRect = activeSprite.rect;
+            Sprite activeSpriteCached = activeSprite;
+
+            Rect spriteRect = activeSpriteCached.rect;
             if (type == Type.Simple || type == Type.Filled)
                 return new Vector2(local.x * spriteRect.width / rect.width, local.y * spriteRect.height / rect.height);
 
-            Vector4 border = activeSprite.border;
+            Vector4 border = activeSpriteCached.border;
             Vector4 adjustedBorder = GetAdjustedBorders(border / pixelsPerUnit, rect);
 
             for (int i = 0; i < 2; i++)
@@ -1859,7 +1905,9 @@ namespace UnityEngine.UI
             for (var i = m_TrackedTexturelessImages.Count - 1; i >= 0; i--)
             {
                 var g = m_TrackedTexturelessImages[i];
-                if (null != g.activeSprite && spriteAtlas.CanBindTo(g.activeSprite))
+                Sprite activeSpriteCached = g.activeSprite;
+
+                if (null != activeSpriteCached && spriteAtlas.CanBindTo(activeSpriteCached))
                 {
                     g.SetAllDirty();
                     m_TrackedTexturelessImages.RemoveAt(i);
