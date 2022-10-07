@@ -344,6 +344,8 @@ namespace UnityEngine.UIElements
             public float altitudeAngle { get; private set; }
             public float azimuthAngle { get; private set; }
             public float twist { get; private set; }
+            public Vector2 tilt { get; }
+            public PenStatus penStatus { get; }
             public Vector2 radius { get; private set; }
             public Vector2 radiusVariance { get; private set; }
             public EventModifiers modifiers { get; private set; }
